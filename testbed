@@ -1,0 +1,9 @@
+from configobj import ConfigObj
+
+configFile = 'config.conf'
+config     = ConfigObj(configFile)
+
+del_files_bool    =  config['Preferences'].as_bool['delete_old_files']
+
+print del_files_bool
+
