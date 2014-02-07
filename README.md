@@ -5,12 +5,12 @@ Scrapes hd-trailers.net and downloads trailers for use with XBMC and Cinema Expe
 
 To install : pip install requirements.txt
 
-*Trailers can be downloaded at a resolution of 480/720/1080. 
+* Trailers can be downloaded at a resolution of 480/720/1080. 
 
-*Trailers that have been downloaded and are older than x days can be deleted. 
+* Trailers that have been downloaded and are older than x days can be deleted. 
 
-*Trailers can be renamed with a custom string appended to the end of the filename. Cinema Experience script will only play trailers with a filename
- ending in -trailer. This is set to happen by default, but can be changed to anything or nothing.
+* Trailers can be renamed with a custom string appended to the end of the filename. Cinema Experience script will only play trailers with a filename
+  ending in -trailer. This is set to happen by default, but can be changed to anything or nothing.
 
 * HD-Trailers.net has multi-part trailers - ie trailer1, trailer2, trailer3, these can all be downloaded for a movie as well the extra
   clips, interviews etc. Single trailers can be downloaded for a movie as well.
