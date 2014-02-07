@@ -282,7 +282,7 @@ def makeSoup(start_url):
 def main():
     if save_path_var == '' :
         writeDebug('** No save path specified. Exiting... **')     # Double check that a save path is specified
-        writeDebug('** Please edit config.conf and        **')
+        writeDebug('** Please edit config.ini and         **')
         writeDebug('** include a path to save to.         **')
         return
     checkDirectory(save_path_var)                                  # Check if path exists, create it if it doesn't 
