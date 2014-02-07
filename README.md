@@ -3,7 +3,7 @@ XBMC-Trailer-Downloader
 
 Scrapes hd-trailers.net and downloads trailers for use with XBMC and Cinema Experience script.
 
-To install : pip install requirements.txt
+To install : pip install -r requirements.txt
 
 * Trailers can be downloaded at a resolution of 480/720/1080. 
 
