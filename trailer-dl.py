@@ -1,6 +1,6 @@
 #  trailer_main.py
 #  
-#  Copyright 2014 realashe <ra@wintermute>
+#  Copyright 2014 realashe <inbox.jason@gmail.com>
 #  
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -43,16 +43,17 @@ import os
 import time
 
 #******** Load all variables from the config file
-#         TODO - Check to see if file exists?!?
-configFile = 'config.conf'
+
+configFile = 'config.ini'
 config     = ConfigObj(configFile)
 
 # Program options   
 save_path_var      = config['Preferences']['path_to_save']
 quality_var        = config['Preferences']['quality']
+custom_label_var   = config['Preferences']['custom_string']
 num_to_dl_var      = config.get('Preferences').as_int('number_to_dl')
 file_age_var       = config.get('Preferences').as_float('old_file_age')
-custom_label_var   = config['Preferences']['custom_string']
+
 
 # These below are all boolean values    
 del_files_bool       = config.get('Preferences').as_bool('del_old_files')
@@ -69,24 +70,24 @@ top_movies_bool         = config.get('Download From').as_bool('top_movies')
 opening_this_week_bool  = config.get('Download From').as_bool('opening_this_week')
 coming_soon_bool        = config.get('Download From').as_bool('coming_soon')
 last_down = ''
-num_to_dl_var -= 1
+#num_to_dl_var -= 1
 
 # Program variables
 site_pref          = 'http://movietrailers.apple.com'   #download from here
 filetype_var       = 'mov', 'mp4', 'avi'
 base_url           = 'http://www.hd-trailers.net'     
-download_count_var = 0   
-
+dl_trailer_count_var = 0   
+dl_clip_count_var    = 0
 
 def writeDebug(debug_info):
 #******** This writes a line to the debug file as well as to the console
 #         Console output is only enabled if verbose_output ==  1  
 #
-    debug_info_payload = time.strftime("%d/%m/%Y ") + time.strftime("%H:%M:%S - ") + debug_info  # payload is 'DATE' + 'TIME' + '-' + 'MESG'
+    debug_info_payload = time.strftime("%d/%m/%Y ") + time.strftime("%H:%M:%S - ") + debug_info  # Payload is 'DATE' + 'TIME' + '-' + 'MESG'
     if log_file_bool  :
-        with open("debug.log", "a") as f:       # open the file and append to it
-            f.write(debug_info_payload + '\n')  # write our payload and a newline
-    if verbose_output_bool : print(debug_info_payload)
+        with open("debug.log", "a") as f:       # Open the file and append to it
+            f.write(debug_info_payload + '\n')  # Write our payload and a newline
+    if verbose_output_bool : print(debug_info_payload)   # Print to the console if required
 
 
 def  checkDirectory(directory):
@@ -100,17 +101,22 @@ def  checkDirectory(directory):
         writeDebug('Directory created : ' + save_path_var)
 
 def deleteFiles():
+    
     del_count = 0
     seconds_in_day = 86400
-    days_old = file_age_var * seconds_in_day    
-    del_time = time.time() - days_old
-    os.chdir(save_path_var)
+    days_old = file_age_var * seconds_in_day    # The desired delete time in seconds
+    del_time = time.time() - days_old           # Get the current time - file age time
     for filename in os.listdir(save_path_var):
-        cur_time = os.path.getmtime(filename)
+        path_to_file = os.path.join(save_path_var, filename)
+        cur_time = os.path.getmtime(path_to_file)   # The current age of the file in seconds
+        
         if cur_time <= del_time : 
-            os.remove(filename)
-            del_count += 1                       
-            WriteDebug('Deleted     : ' + filename)
+            if os.path.isfile(path_to_file):         # Check it's not a directory
+                os.remove(path_to_file)              # Delete file
+                del_count += 1                       
+                writeDebug('Deleted !!!! : ' + filename)
+            else :
+                writeDebug("Directory detected. Not deleting " + path_to_file)
     writeDebug(str(del_count) + ' files deleted.')
  
 def checkLink(active_link):
@@ -119,7 +125,7 @@ def checkLink(active_link):
 #   
     global last_down    
     file_name = active_link.split('/')[-1]
-    if multi_part_bool :        # Download multiple clips for the same movie
+    if multi_part_bool :                              # Download multiple clips for the same movie
         current_movie = active_link.split('/')[-1]      # This gets the filename from the url
         if last_down == current_movie : 
             return 
@@ -131,10 +137,10 @@ def checkLink(active_link):
                 last_down = active_link.split('/')[-1]   # This gets the filename
            
                 
-    if not multi_part_bool :         # Download 1 trailer for each movie
+    if not multi_part_bool :                            # Download 1 trailer for each movie
         current_movie = active_link.split('/')[-2]      # This gets the movie name from the url
         grab_type = '-tlr'       
-        if last_down == current_movie : 
+        if last_down == current_movie :                 
             return 
         if site_pref in active_link and quality_var in active_link and  grab_type in active_link :
             writeDebug("Found Trailer : " + active_link)                                           
@@ -156,7 +162,8 @@ def downloadLink(url):
 # ******** Download the file to save_path_var location
 #
 # 
-    global download_count_var     
+    global dl_trailer_count_var     
+    global dl_clip_count_var
     file_name = url.split('/')[-1]                    # Strip out the filename
     request = urllib2.Request(url)                    # Prepare the url to be opened
     request.add_header('User-agent', 'Quicktime')     # We are now a qt player as apple only allows qt players to download their files 
@@ -176,10 +183,16 @@ def downloadLink(url):
         f.write(buffer)                  # Write the buffer to our file
         status = r"TOTAL: %s Bytes- DONE: %4d Bytes [%3.2f%%]" % (file_size, file_size_dl, file_size_dl * 100. / file_size)   # Magic from stackexchange
         status = status + chr(8)*(len(status)+1)                                        # More magic
-        if verbose_output_bool : print status,                                                # Print the magic   ',' keeps it all on one line
+        if verbose_output_bool : 
+             
+             print status,                                                              # Print the magic   ',' keeps it all on one line
     f.close() 
-    download_count_var += 1
-    print '\n'
+    if 'tlr' in file_name :
+        dl_trailer_count_var += 1
+    else :
+        dl_clip_count_var +- 1
+    
+    if verbose_output_bool : print '\r'
     writeDebug ('Downloaded    : ' + file_name)
     
 
@@ -189,11 +202,10 @@ def checkDuplicate(filename):
 #           before searching.
     extracted_filename = extractFilename(filename)   
     if custom_label_var != '' : search_str = extracted_filename[0] + custom_label_var + extracted_filename[1]  # Add the custom string to the search_str
-    elif custom_label_var == '' : search_str = extracted_filename[0] + extracted_filename[1]                   # If there is no custom string
-    
+    elif custom_label_var == '' : search_str = extracted_filename[0] + extracted_filename[1]                   # If there is no custom string   
     for filename in os.listdir(save_path_var):    
         if filename == search_str or filename == extracted_filename[0] + extracted_filename[1] :        # Check for duplicates. The second check if for
-            writeDebug('Duplicate --- : ' + filename)                           # completeness. 
+            writeDebug('Duplicate --- : ' + filename)                                                   # completeness. 
             return('DUPE')
             break
             
@@ -214,15 +226,17 @@ def renameTrailers():
 #            adding custom_label_var to the end of the filename    
 #  
     rename_count = 0
+    
     for filename in os.listdir(save_path_var):      
-        if not custom_label_var in filename and not 'clip' in filename:  # Check that custom_string and clip are not in filename
+        if not custom_label_var in filename and not 'clip' in filename and not '-fte' in filename:  # Check that custom_string and clip are not in filename
              if filename.endswith(filetype_var):                         # File ext to search for
                  path = os.path.join(save_path_var, filename)            # Location + filename   
                  extracted_filename = extractFilename(filename)
                  if extracted_filename[1] == "oad" : file_ext = ".mov"   # Apple sometimes returns files with no extension, make these .movs              
                  target = os.path.join(save_path_var, extracted_filename[0] + custom_label_var + extracted_filename[1])     # dir + file + ext
                  os.rename(path, target)   
-                 rename_count += 1             
+                 rename_count += 1 
+                 writeDebug('Renamed : ' + path)            
     writeDebug (str(rename_count) + ' trailers renamed.' )                 
                                              
             
@@ -230,7 +244,9 @@ def makeNewSoup(new_link):
 # ********* Search through the pages of movies to find 
 #           links to download from apple movies
 #
-    writeDebug('Following url : ' + new_link)
+    if dl_trailer_count_var == num_to_dl_var : 
+        return 
+    #writeDebug('Following url : ' + new_link)
     new_url = requests.get(base_url + new_link)   # make a new url to scrape new page                
     data = new_url.text
     soup = BeautifulSoup(data)
@@ -250,39 +266,37 @@ def makeSoup(start_url):
 # ********** Make the soup - this gets back a list of links
 #                            we will search through to find trailers 
 #
-    if verbose_output_bool : writeDebug('**Scraping**  : ' + start_url)
+    if dl_trailer_count_var == num_to_dl_var : 
+        return 
+    writeDebug('**Scraping**  : ' + start_url)
     url = requests.get(start_url)   # Get the page to scrape
     data = url.text     
     soup = BeautifulSoup(data)  # Make the soup
-    for link in soup.findAll('a'):                                        # find the <a href> tag
-        if 'movie' in link['href'] and "autoplay" not in link['href']:    # is 'movie' in the link but not 'autoplay'
-            if link == None : current_link = "NULL"                       # get rid of empty links
-            current_link = link.get('href')                               # grab the link target            
-            if download_count_var <= num_to_dl_var :
-                makeNewSoup(current_link)                                     # start again with a new link to see if there is anything to grab
-            else : 
-                writeDebug('Download limit reached.')
-                writeDebug(str(download_count_var) + ' trailers downloaded.')
-                return           
+    for link in soup.findAll('a'):                                        # Find the <a href> tag
+        if 'movie' in link['href'] and "autoplay" not in link['href']:    
+            if link == None : current_link = "NULL"                       # Get rid of empty links
+            current_link = link.get('href')                               # Grab the link target            
+            makeNewSoup(current_link)                                 # Start again with a new link to see if there is anything to grab
+               
 
 def main():
     if save_path_var == '' :
-        writeDebug('** No save path specified. Exiting... **')
+        writeDebug('** No save path specified. Exiting... **')     # Double check that a save path is specified
         writeDebug('** Please edit config.conf and        **')
         writeDebug('** include a path to save to.         **')
         return
-    checkDirectory(save_path_var)
+    checkDirectory(save_path_var)                                  # Check if path exists, create it if it doesn't 
     
     if download_latest_bool   : makeSoup(base_url + '/page/1/')
     if most_watched_bool      : makeSoup(base_url + '/most-watched')
     if top_movies_bool        : makeSoup(base_url + '/top-movies/')
     if opening_this_week_bool : makeSoup(base_url + '/opening-this-week/')
     if coming_soon_bool       : makeSoup(base_url + '/coming-soon/')
-    
-    if rename_trailer_bool    : renameTrailers() 
+    writeDebug(str(dl_trailer_count_var) + ' trailers downloaded.')    
+    writeDebug(str(dl_clip_count_var) + ' clips downloaded.')
     if del_files_bool         : deleteFiles()
-    
-    if download_count_var == 0 : writeDebug('No new trailers found.')
+    if rename_trailer_bool    : renameTrailers() 
+   
     
 if __name__ == '__main__':
     main()
