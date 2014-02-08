@@ -38,7 +38,6 @@
 from bs4 import BeautifulSoup
 from configobj import ConfigObj
 import requests
-import urllib2
 import os
 import time
 
@@ -159,41 +158,30 @@ def checkLink(active_link):
                
 
 def downloadLink(url):
-# ******** Download the file to save_path_var location
-#
-# 
-    global dl_trailer_count_var     
+    global dl_trailer_count_var
     global dl_clip_count_var
-    file_name = url.split('/')[-1]                    # Strip out the filename
-    request = urllib2.Request(url)                    # Prepare the url to be opened
-    request.add_header('User-agent', 'Quicktime')     # We are now a qt player as apple only allows qt players to download their files 
-    u = urllib2.urlopen(request)                      # Open the url we have created
-    f = open(save_path_var + file_name, 'wb')         # f is the file we will write to (wb - write, binary)                    
-    meta = u.info()                                   # Get the metainfo from the url we have open
-    file_size = int(meta.getheaders("Content-Length")[0])      # Grab the filesize
     
-    file_size_dl = 0          # How much have we downloaded
-    block_sz = 8192           # Block size - we will download this much at once
-    if verbose_output_bool : writeDebug("Downloading   : %s to: %s" % (file_name, save_path_var))
-    while True:
-        buffer = u.read(block_sz)   # Read 8192 bytes from our url
-        if not buffer:
-            break
-        file_size_dl += len(buffer)      # Update our file size progress
-        f.write(buffer)                  # Write the buffer to our file
-        status = r"TOTAL: %s Bytes- DONE: %4d Bytes [%3.2f%%]" % (file_size, file_size_dl, file_size_dl * 100. / file_size)   # Magic from stackexchange
-        status = status + chr(8)*(len(status)+1)                                        # More magic
-        if verbose_output_bool : 
-             
-             print status,                                                              # Print the magic   ',' keeps it all on one line
-    f.close() 
+    file_name = url.split('/')[-1]
+    r = requests.get(url, headers={"User-agent":"Quicktime"}, stream = True)  # Identify ourselves as a quicktime player and open url as a stream
+    file_size = int(r.headers['content-length'])      # Grab the filesize
+    file_size_dl = 0       						      # How much have we downloaded
+    block_sz = 2048                                   # Download x much at once
+    with open(file_name, 'wb') as f:
+        for chunk in r.iter_content(block_sz): 
+            if chunk: 								  # filter out keep-alive new chunks
+                file_size_dl += block_sz
+                f.write(chunk)
+                status = r"TOTAL: %s Bytes- DONE: %4d Bytes [%3.2f%%]" % (file_size, file_size_dl, file_size_dl * 100. / file_size)   # Magic from stackexchange
+                status = status + chr(8)*(len(status)+1)                                                                              
+                if verbose_output_bool :
+                    print(status),      
     if 'tlr' in file_name :
         dl_trailer_count_var += 1
     else :
-        dl_clip_count_var +- 1
-    
+        dl_clip_count_var +- 1  
     if verbose_output_bool : print '\r'
     writeDebug ('Downloaded    : ' + file_name)
+    return 
     
 
 def checkDuplicate(filename):
@@ -282,7 +270,7 @@ def makeSoup(start_url):
 def main():
     if save_path_var == '' :
         writeDebug('** No save path specified. Exiting... **')     # Double check that a save path is specified
-        writeDebug('** Please edit config.conf and        **')
+        writeDebug('** Please edit config.ini  and        **')
         writeDebug('** include a path to save to.         **')
         return
     checkDirectory(save_path_var)                                  # Check if path exists, create it if it doesn't 
