@@ -270,15 +270,11 @@ def makeSoup(start_url):
 def main():
     if save_path_var == '' :
         writeDebug('** No save path specified. Exiting... **')     # Double check that a save path is specified
-<<<<<<< HEAD
         writeDebug('** Please edit config.ini  and        **')
-=======
         writeDebug('** Please edit config.ini and         **')
->>>>>>> d650058004bc0a32b29f4da4b9d61d431d420e9b
         writeDebug('** include a path to save to.         **')
         return
-    checkDirectory(save_path_var)                                  # Check if path exists, create it if it doesn't 
-    
+    checkDirectory(save_path_var)                                  # Check if path exists, create it if it doesn't   
     if download_latest_bool   : makeSoup(base_url + '/page/1/')
     if most_watched_bool      : makeSoup(base_url + '/most-watched')
     if top_movies_bool        : makeSoup(base_url + '/top-movies/')
