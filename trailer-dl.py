@@ -166,7 +166,7 @@ def downloadLink(url):
     file_size = int(r.headers['content-length'])      # Grab the filesize
     file_size_dl = 0       						      # How much have we downloaded
     block_sz = 2048                                   # Download x much at once
-    with open(file_name, 'wb') as f:
+    with open(save_path_var + file_name, 'wb') as f:
         for chunk in r.iter_content(block_sz): 
             if chunk: 								  # filter out keep-alive new chunks
                 file_size_dl += block_sz
