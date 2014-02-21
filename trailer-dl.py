@@ -100,7 +100,9 @@ def  checkDirectory(directory):
         writeDebug('Directory created : ' + save_path_var)
 
 def deleteFiles():
-    
+#******** Deletes files older than file_age_var
+#
+#    
     del_count = 0
     seconds_in_day = 86400
     days_old = file_age_var * seconds_in_day    # The desired delete time in seconds
@@ -123,6 +125,7 @@ def checkLink(active_link):
 #           we want to download  
 #   
     global last_down    
+    writeDebug('Checking link : ' + active_link) 
     file_name = active_link.split('/')[-1]
     if multi_part_bool :                              # Download multiple clips for the same movie
         current_movie = active_link.split('/')[-1]      # This gets the filename from the url
@@ -158,15 +161,23 @@ def checkLink(active_link):
                
 
 def downloadLink(url):
+#******** Downloads a file from the url specified
+#
+#	
     global dl_trailer_count_var
     global dl_clip_count_var
     
     file_name = url.split('/')[-1]
+    writeDebug('Requesting    : ' + url)
     r = requests.get(url, headers={"User-agent":"Quicktime"}, stream = True)  # Identify ourselves as a quicktime player and open url as a stream
     file_size = int(r.headers['content-length'])      # Grab the filesize
     file_size_dl = 0       						      # How much have we downloaded
     block_sz = 2048                                   # Download x much at once
-    with open(save_path_var + file_name, 'wb') as f:
+    writeDebug('Return status : ' + str(r.status_code))
+    writeDebug('Content Type  : ' + r.headers['Content-Type'])
+    writeDebug('Saving to     : ' + os.path.join(save_path_var, file_name))
+    writeDebug('Filesize      : ' + str(file_size))
+    with open(os.path.join(save_path_var, file_name), 'wb') as f:
         for chunk in r.iter_content(block_sz): 
             if chunk: 								  # filter out keep-alive new chunks
                 file_size_dl += block_sz
@@ -175,13 +186,15 @@ def downloadLink(url):
                 status = status + chr(8)*(len(status)+1)                                                                              
                 if verbose_output_bool :
                     print(status),      
+                                
+    writeDebug('Completed - ' + str)
     if 'tlr' in file_name :
         dl_trailer_count_var += 1
     else :
         dl_clip_count_var +- 1  
     if verbose_output_bool : print '\r'
     writeDebug ('Downloaded    : ' + file_name)
-    return 
+     
     
 
 def checkDuplicate(filename):
@@ -228,10 +241,10 @@ def renameTrailers():
     writeDebug (str(rename_count) + ' trailers renamed.' )                 
                                              
             
-def makeNewSoup(new_link):
+def makeNewSoup(new_link, return_val):
 # ********* Search through the pages of movies to find 
 #           links to download from apple movies
-#
+#           add boolean value to parameters to control wethr this checks a new link or returns the value!
     if dl_trailer_count_var == num_to_dl_var : 
         return 
     #writeDebug('Following url : ' + new_link)
@@ -240,13 +253,18 @@ def makeNewSoup(new_link):
     soup = BeautifulSoup(data)
     for link in soup.findAll('a'):      # find the <a href> tag                               
            try:
-              if 'movie' in link['href']: 
+              if 'movie' in link['href'] : 
+                    #print link['href']
                     if link == None : current_link = "NULL" 
                     new_current_link = link.get('href')
-                    #writeDebug('Found link ... ' + new_current_link)
-                    checkLink(new_current_link)
+                    # Grab the link target            
+                    if return_val : 
+                        links.append(link['href'])
+                    else :  
+                        checkLink(new_current_link)
            except KeyError:
                    pass
+    if return_val : return link_list
 
 
 
@@ -264,7 +282,7 @@ def makeSoup(start_url):
         if 'movie' in link['href'] and "autoplay" not in link['href']:    
             if link == None : current_link = "NULL"                       # Get rid of empty links
             current_link = link.get('href')                               # Grab the link target            
-            makeNewSoup(current_link)                                 # Start again with a new link to see if there is anything to grab
+            makeNewSoup(current_link, False)                                 # Start again with a new link to see if there is anything to grab
                
 
 def main():
