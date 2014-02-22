@@ -125,7 +125,7 @@ def checkLink(active_link):
 #           we want to download  
 #   
     global last_down    
-    writeDebug('Checking link : ' + active_link) 
+    #writeDebug('Checking link : ' + active_link) 
     file_name = active_link.split('/')[-1]
     if multi_part_bool :                              # Download multiple clips for the same movie
         current_movie = active_link.split('/')[-1]      # This gets the filename from the url
