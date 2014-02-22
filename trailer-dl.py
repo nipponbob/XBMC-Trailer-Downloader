@@ -252,7 +252,11 @@ def makeNewSoup(new_link, return_val):
     if dl_trailer_count_var == num_to_dl_var : 
         return 
     #writeDebug('Following url : ' + new_link)
-    new_url = requests.get(base_url + new_link)   # make a new url to scrape new page                
+    try:
+        new_url = requests.get(base_url + new_link)   # make a new url to scrape new page                
+    except requests.exceptions.ConnectionError as error_msg:
+		writeDebug(str(error_msg))
+		return
     data = new_url.text
     soup = BeautifulSoup(data)
     for link in soup.findAll('a'):      # find the <a href> tag                               
@@ -279,7 +283,11 @@ def makeSoup(start_url):
     if dl_trailer_count_var == num_to_dl_var : 
         return 
     writeDebug('**Scraping**  : ' + start_url)
-    url = requests.get(start_url)   # Get the page to scrape
+    try: 
+        url = requests.get(start_url)   # Get the page to scrape
+    except requests.exceptions.ConnectionError as error_msg:
+		writeDebug(str(error_msg))
+		return
     data = url.text     
     soup = BeautifulSoup(data)  # Make the soup
     for link in soup.findAll('a'):                                        # Find the <a href> tag
