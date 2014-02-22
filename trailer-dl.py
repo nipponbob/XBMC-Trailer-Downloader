@@ -169,6 +169,7 @@ def downloadLink(url):
     
     file_name = url.split('/')[-1]
     writeDebug('Requesting    : ' + url)
+    
     r = requests.get(url, headers={"User-agent":"Quicktime"}, stream = True)  # Identify ourselves as a quicktime player and open url as a stream
     file_size = int(r.headers['content-length'])      # Grab the filesize
     file_size_dl = 0       						      # How much have we downloaded
@@ -187,7 +188,7 @@ def downloadLink(url):
                 if verbose_output_bool :
                     print(status),      
                                 
-    writeDebug('Completed - ' + str)
+    
     if 'tlr' in file_name :
         dl_trailer_count_var += 1
     else :
