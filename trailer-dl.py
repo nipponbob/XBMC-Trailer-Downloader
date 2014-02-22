@@ -169,8 +169,11 @@ def downloadLink(url):
     
     file_name = url.split('/')[-1]
     writeDebug('Requesting    : ' + url)
-    
-    r = requests.get(url, headers={"User-agent":"Quicktime"}, stream = True)  # Identify ourselves as a quicktime player and open url as a stream
+    try:
+        r = requests.get(url, headers={"User-agent":"Quicktime"}, stream = True)  # Identify ourselves as a quicktime player and open url as a stream
+    except requests.exceptions.ConnectionError as error_msg:
+		writeDebug(str(error_msg))
+		return
     file_size = int(r.headers['content-length'])      # Grab the filesize
     file_size_dl = 0       						      # How much have we downloaded
     block_sz = 2048                                   # Download x much at once
