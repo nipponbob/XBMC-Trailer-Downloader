@@ -20,6 +20,6 @@ To install : pip install -r requirements.txt
 * Each subsection of HD-Trailers.net can be scraped, latest, most-watched, top-movies, opening-this-week and coming-soon. Please set a high value for num_to_dl in the config.ini if you intend are scraping the whole site. Duplicates will not be downloaded.
 
 
-Please modify the config.ini with your save location for trailers. 
+****Please modify the config.ini with your save location for trailers. ****
 
 
