@@ -69,7 +69,7 @@ top_movies_bool         = config.get('Download From').as_bool('top_movies')
 opening_this_week_bool  = config.get('Download From').as_bool('opening_this_week')
 coming_soon_bool        = config.get('Download From').as_bool('coming_soon')
 last_down = ''
-#num_to_dl_var -= 1
+
 
 # Program variables
 site_pref          = 'http://movietrailers.apple.com'   #download from here
@@ -77,7 +77,11 @@ filetype_var       = 'mov', 'mp4', 'avi'
 base_url           = 'http://www.hd-trailers.net'     
 dl_trailer_count_var = 0   
 dl_clip_count_var    = 0
+total_downloaded = 1  
+
 current_version      = 1.1
+
+
 def writeDebug(debug_info):
 #******** This writes a line to the debug file as well as to the console
 #         Console output is only enabled if verbose_output ==  1  
@@ -166,6 +170,9 @@ def downloadLink(url):
 #	
     global dl_trailer_count_var
     global dl_clip_count_var
+    global num_to_dl_var
+    global total_downloaded
+    
     
     file_name = url.split('/')[-1]
     writeDebug('Requesting    : ' + url)
@@ -186,15 +193,18 @@ def downloadLink(url):
             if chunk: 								  # filter out keep-alive new chunks
                 file_size_dl += block_sz
                 f.write(chunk)
-                status = r"TOTAL: %s Bytes- DONE: %4d Bytes [%3.2f%%]" % (file_size, file_size_dl, file_size_dl * 100. / file_size)   # Magic from stackexchange
+                status = r"TOTAL: %s Bytes- DONE: %4d Bytes [%3.2f%%] - File [%d] of [%d]" % (file_size, file_size_dl, 
+                         file_size_dl * 100. / file_size, total_downloaded ,num_to_dl_var)   # Magic from stackexchange
                 status = status + chr(8)*(len(status)+1)                                                                              
                 if verbose_output_bool :
                     print(status),      
-                                
+                 
     
     if 'tlr' in file_name :
         dl_trailer_count_var += 1
+        total_downloaded += 1
     else :
+        total_downloaded += 1
         dl_clip_count_var +- 1  
     if verbose_output_bool : print '\r'
     writeDebug ('Downloaded    : ' + file_name)
@@ -212,7 +222,7 @@ def checkDuplicate(filename):
         if filename == search_str or filename == extracted_filename[0] + extracted_filename[1] :        # Check for duplicates. The second check if for
             writeDebug('Duplicate --- : ' + filename)                                                   # completeness. 
             return('DUPE')
-            break
+           # break
             
 
 def extractFilename(filename):
