@@ -222,7 +222,7 @@ def checkDuplicate(filename):
         if filename == search_str or filename == extracted_filename[0] + extracted_filename[1] :        # Check for duplicates. The second check if for
             writeDebug('Duplicate --- : ' + filename)                                                   # completeness. 
             return('DUPE')
-           # break
+       
             
 
 def extractFilename(filename):
