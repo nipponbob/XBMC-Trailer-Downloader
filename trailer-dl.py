@@ -77,7 +77,7 @@ filetype_var       = 'mov', 'mp4', 'avi'
 base_url           = 'http://www.hd-trailers.net'     
 dl_trailer_count_var = 0   
 dl_clip_count_var    = 0
-
+current_version      = 1.1
 def writeDebug(debug_info):
 #******** This writes a line to the debug file as well as to the console
 #         Console output is only enabled if verbose_output ==  1  
@@ -305,6 +305,8 @@ def main():
         writeDebug('** include a path to save to.         **')
         return
     checkDirectory(save_path_var)                                  # Check if path exists, create it if it doesn't   
+    print "XBMC Trailer Downloader"
+    print "Current Version - %s" %current_version
     if download_latest_bool   : makeSoup(base_url + '/page/1/')
     if most_watched_bool      : makeSoup(base_url + '/most-watched')
     if top_movies_bool        : makeSoup(base_url + '/top-movies/')
