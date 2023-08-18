@@ -262,7 +262,7 @@ def makeNewSoup(new_link, return_val):
     for link in soup.findAll('a'):      # find the <a href> tag                               
            try:
               if 'movie' in link['href'] : 
-                    #print link['href']
+                    #print link['href'] This is for testing!
                     if link == None : current_link = "NULL" 
                     new_current_link = link.get('href')
                     # Grab the link target            
